@@ -41,6 +41,10 @@ public class Area {
 	 */
 	public Area(String name, int time, int capacity, Position2D position) {
 		// TODO
+		this.name = name;
+		this.time = time;
+		this.capacity = capacity;
+		this.position = position;
 		this.color = Color.GRAY; // Default color
 	}
 
@@ -97,7 +101,25 @@ public class Area {
 	 * @param p The patient that wants to enter.
 	 */
 	// TODO: method enter
-	
+	public synchronized void enter(Patient p) {
+		boolean heEsperado = false;
+		while (numPatients >= capacity) {
+			try {
+				if (!heEsperado) {
+					waiting++;
+					heEsperado = true;
+				}
+				wait();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		if (heEsperado) {
+			waiting--;
+		}
+		numPatients++;
+	}
+
 	/**
 	 * Thread safe method that allows a Patient to exit the area. After the Patient
 	 * has left, this method notifys all waiting Patients.
@@ -105,27 +127,43 @@ public class Area {
 	 * @param p The patient that wants to enter.
 	 */
 	// TODO method exit
-	
+	public synchronized void exit(Patient p) {
+		numPatients--;
+		System.out.println("Paciente " + p.getNumber() + " sale de " + this.getName());
+		notifyAll();
+	}
+
 	/**
 	 * Returns the capacity of the Area. This method must be thread safe.
 	 * 
 	 * @return The capacity.
 	 */
 	// TODO: method getCapacity
-	
+	public int getCapacity() {
+		return this.capacity;
+	}
+
 	/**
-	 * Returns the current number of Patients being treated at the Area. This method must be thread safe.
+	 * Returns the current number of Patients being treated at the Area. This method
+	 * must be thread safe.
 	 * 
 	 * @return The number of Patients being treated.
 	 */
 	// TODO: method getNumPatients
+	public int getNumPatients() {
+		return this.numPatients;
+	}
 
 	/**
-	 * Returns the current number of Patients waiting to be treated at the Area. This method must be thread safe.
+	 * Returns the current number of Patients waiting to be treated at the Area.
+	 * This method must be thread safe.
 	 * 
 	 * @return The number of Patients waiting to be treated.
 	 */
 	// TODO method getWaiting
+	public int getWaiting() {
+		return waiting;
+	}
 
 	@Override
 	public int hashCode() {
